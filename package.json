@@ -1,10 +1,12 @@
 {
   "name": "pebble-peek-test",
-  "author": "MakeAwesomeHappen",
+  "author": "Morris Timm <pebble@timm.tc>",
   "version": "1.0.0",
   "files": ["dist.zip"],
   "keywords": ["pebble-package"],
-  "dependencies": {},
+  "description": "A way to test Timeline Peek events in CloudPebble.",
+  "repository": "MorrisTimm/pebble-peek-test",
+    "dependencies": {},
   "pebble": {
     "projectType": "package",
     "sdkVersion": "3",
