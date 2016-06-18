@@ -1,4 +1,5 @@
-#include <peek_test.h>
+#include <pebble.h>
+#include "pebble-peek-test.h"
 
 #define SPEED 15
 #define PEEK_HEIGHT 51
