@@ -5,9 +5,15 @@ As I'm writing this there is no way to test Timeline Peek events in CloudPebble,
 
 The resulting animation it not exactly the same as with real events but it is a pretty good approximation.
 
-To use the peek test you have to add the `Layer` returned by `peek_test_init` to your root layer. This will be the layer that shows the peek. Instead of `layer_get_unobstructed_bounds` you have to use `peek_test_get_unobstructed_bounds`. The subscribe and unsubscribe functions juast have an added `peek_test_` in front.
+To use the peek test you have to add the `Layer` returned by `peek_test_init` to your root layer. This will be the layer that shows the peek. The peek will appear/disappear at the specified interval.
+
+Instead of `layer_get_unobstructed_bounds` you have to use `peek_test_get_unobstructed_bounds`. The subscribe and unsubscribe functions juast have an added `peek_test_` in front.
 
 You can use the `PEEKL_TEST` define to determine whether or not the peek test is used. The define is set if `peek_test.h` is included. When used correctly you can easily switch between emulation and real events by just commenting out the `peek_test.h` include.
+
+Here are some images of what the peeks look like (more: http://imgur.com/a/yZ75V): ![BCD minimalist](http://i.imgur.com/LMDCyor.gif)
+
+Only the one in the middle shows _real_ Timeline Peek events, the others are emulated.
 
 Usage example:
 
