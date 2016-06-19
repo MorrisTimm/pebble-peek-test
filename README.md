@@ -13,11 +13,11 @@ You can use the `PEEKL_TEST` define to determine whether or not the peek test is
 
 Here are some images of what the peeks look like (more: http://imgur.com/a/yZ75V): ![BCD minimalist](http://i.imgur.com/LMDCyor.gif)
 
-Only the one in the middle shows _real_ Timeline Peek events, the others are emulated.
+The one in the middle shows _real_ Timeline Peek events, the others are emulated.
 
 Usage example:
 
-    #include <pebble-peek-test.h>
+    #include <pebble-peek-test/pebble-peek-test.h>
 
     GSize available_screen;
 
