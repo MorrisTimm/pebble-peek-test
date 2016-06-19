@@ -30,7 +30,7 @@ Usage example:
     }
       
     static void unobstructed_area_change(AnimationProgress progress, void* context) {
-      APP_LOG(APP_LOG_LEVEL_INFO, "change = %d%%", (int)progress);
+      APP_LOG(APP_LOG_LEVEL_INFO, "change = %ld%%", (progress*100)/ANIMATION_NORMALIZED_MAX);
     #ifdef PEEK_TEST
       GRect unobstructed_area = peek_test_get_unobstructed_bounds();
     #else // PEEK_TEST

@@ -11,15 +11,11 @@
 #endif
 
 static GRect s_screen;
-static int s_height;
 static int s_interval;
 static UnobstructedAreaHandlers s_handlers;
 static void* s_context;
 static AppTimer* s_peek_timer;
 static AppTimer* s_animation_timer;
-static TextLayer* s_text_layer;
-static TextLayer* s_side_layer;
-static TextLayer* s_top_layer;
 static Layer* s_layer;
 static bool s_peek;
 
@@ -50,13 +46,13 @@ static void prv_animation_timer_callback(void* data) {
   layer_set_frame((Layer*)s_layer, bounds);
   layer_mark_dirty((Layer*)s_layer);
   if(s_handlers.change) {
-    AnimationProgress percent;
+    AnimationProgress progress;
     if(s_peek) {
-      percent = (-(bounds.origin.y-s_screen.size.h)*100)/PEEK_HEIGHT;
+      progress = (-(bounds.origin.y-s_screen.size.h)*ANIMATION_NORMALIZED_MAX)/PEEK_HEIGHT;
     } else {
-      percent = 100-((-(bounds.origin.y-s_screen.size.h)*100)/PEEK_HEIGHT);
+      progress = ANIMATION_NORMALIZED_MAX-((-(bounds.origin.y-s_screen.size.h)*ANIMATION_NORMALIZED_MAX)/PEEK_HEIGHT);
     }
-    s_handlers.change(percent, s_context);
+    s_handlers.change(progress, s_context);
   }
   if(s_handlers.did_change && did_change) {
     s_handlers.did_change(s_context);

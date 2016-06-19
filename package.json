@@ -1,7 +1,7 @@
 {
   "name": "pebble-peek-test",
   "author": "Morris Timm <pebble@timm.tc>",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "files": ["dist.zip"],
   "keywords": ["pebble-package"],
   "description": "A way to test Timeline Peek events in CloudPebble.",
