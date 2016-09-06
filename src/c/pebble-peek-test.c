@@ -12,6 +12,7 @@
 
 static GRect s_screen;
 static int s_interval;
+static PeekType s_type;
 static UnobstructedAreaHandlers s_handlers;
 static void* s_context;
 static AppTimer* s_peek_timer;
@@ -23,35 +24,47 @@ static void prv_animation_timer_callback(void* data) {
   GRect bounds = layer_get_frame((Layer*)s_layer);
   bool did_change = false;
   if(s_peek) {
-    /*
-    if(bounds.origin.y > s_screen.size.h-PEEK_HEIGHT) {
-      bounds.origin.y -= SPEED;
-      if(bounds.origin.y < s_screen.size.h-PEEK_HEIGHT) {
-        bounds.origin.y = s_screen.size.h-PEEK_HEIGHT;
-    */
-    if(bounds.origin.y < 0) {
-      bounds.origin.y += SPEED;
-      if(bounds.origin.y > 0) {
-        bounds.origin.y = 0;
-        did_change = true;
-      } else {
-        s_animation_timer = app_timer_register(33, prv_animation_timer_callback, data);
+    if(s_type) {
+      if(bounds.origin.y < 0) {
+        bounds.origin.y += SPEED;
+        if(bounds.origin.y > 0) {
+          bounds.origin.y = 0;
+          did_change = true;
+        } else {
+          s_animation_timer = app_timer_register(33, prv_animation_timer_callback, data);
+        }
+      }
+    } else {
+      if(bounds.origin.y > s_screen.size.h-PEEK_HEIGHT) {
+        bounds.origin.y -= SPEED;
+        if(bounds.origin.y < s_screen.size.h-PEEK_HEIGHT) {
+          bounds.origin.y = s_screen.size.h-PEEK_HEIGHT;
+          did_change = true;
+        } else {
+          s_animation_timer = app_timer_register(33, prv_animation_timer_callback, data);
+        }
       }
     }
   } else {
-    /*
-    if(bounds.origin.y < s_screen.size.h) {
-      bounds.origin.y += SPEED;
-      if(bounds.origin.y > s_screen.size.h) {
-        bounds.origin.y = s_screen.size.h;
-    */
-    if(bounds.origin.y > -PEEK_HEIGHT) {
-      bounds.origin.y -= SPEED;
-      if(bounds.origin.y < -PEEK_HEIGHT) {
-        bounds.origin.y = -PEEK_HEIGHT;
-        did_change = true;
-      } else {
-        s_animation_timer = app_timer_register(33, prv_animation_timer_callback, data);
+    if(s_type) {
+      if(bounds.origin.y > -PEEK_HEIGHT) {
+        bounds.origin.y -= SPEED;
+        if(bounds.origin.y < -PEEK_HEIGHT) {
+          bounds.origin.y = -PEEK_HEIGHT;
+          did_change = true;
+        } else {
+          s_animation_timer = app_timer_register(33, prv_animation_timer_callback, data);
+        }
+      }
+    } else {
+      if(bounds.origin.y < s_screen.size.h) {
+        bounds.origin.y += SPEED;
+        if(bounds.origin.y > s_screen.size.h) {
+          bounds.origin.y = s_screen.size.h;
+          did_change = true;
+        } else {
+          s_animation_timer = app_timer_register(33, prv_animation_timer_callback, data);
+        }
       }
     }
   }
@@ -60,9 +73,17 @@ static void prv_animation_timer_callback(void* data) {
   if(s_handlers.change) {
     AnimationProgress progress;
     if(s_peek) {
-      progress = (-(bounds.origin.y-s_screen.size.h)*ANIMATION_NORMALIZED_MAX)/PEEK_HEIGHT;
+      if(s_type) {
+        progress = ANIMATION_NORMALIZED_MAX-((-bounds.origin.y*ANIMATION_NORMALIZED_MAX)/PEEK_HEIGHT);
+      } else {
+        progress = (-(bounds.origin.y-s_screen.size.h)*ANIMATION_NORMALIZED_MAX)/PEEK_HEIGHT;
+      }
     } else {
-      progress = ANIMATION_NORMALIZED_MAX-((-(bounds.origin.y-s_screen.size.h)*ANIMATION_NORMALIZED_MAX)/PEEK_HEIGHT);
+      if(s_type) {
+        progress = (-bounds.origin.y*ANIMATION_NORMALIZED_MAX)/PEEK_HEIGHT;
+      } else {
+        progress = ANIMATION_NORMALIZED_MAX-((-(bounds.origin.y-s_screen.size.h)*ANIMATION_NORMALIZED_MAX)/PEEK_HEIGHT);
+      }
     }
     s_handlers.change(progress, s_context);
   }
@@ -78,7 +99,9 @@ static void prv_peek_timer_callback(void* data) {
   if(s_handlers.will_change) {
     GRect target = s_screen;
     if(s_peek) {
-      target.origin.y = PEEK_HEIGHT; // from top
+      if(s_type) {
+        target.origin.y = PEEK_HEIGHT;
+      }
       target.size.h = s_screen.size.h-PEEK_HEIGHT;
     }
     s_handlers.will_change(target, s_context);
@@ -94,12 +117,16 @@ static void prv_layer_update_proc(Layer* layer, GContext* ctx) {
   graphics_fill_rect(ctx, GRect(0, 0, s_screen.size.w, PEEK_BORDER), 0, GCornerNone);
 }
 
-Layer* peek_test_init(GRect screen_bounds, int peek_interval) {
+Layer* peek_test_init(GRect screen_bounds, int peek_interval, PeekType peek_type) {
   s_screen = screen_bounds;
   s_interval = peek_interval;
+  s_type = peek_type;
 
-  //s_layer = layer_create(GRect(0, s_screen.size.h, s_screen.size.w, PEEK_HEIGHT));
-  s_layer = layer_create(GRect(0, -PEEK_HEIGHT, s_screen.size.w, PEEK_HEIGHT)); // from top
+  if(s_type) {
+    s_layer = layer_create(GRect(0, -PEEK_HEIGHT, s_screen.size.w, PEEK_HEIGHT));
+  } else {
+    s_layer = layer_create(GRect(0, s_screen.size.h, s_screen.size.w, PEEK_HEIGHT));
+  }
   layer_set_update_proc(s_layer, prv_layer_update_proc);
 
   s_peek = false;
@@ -121,6 +148,11 @@ void peek_test_unobstructed_area_service_unsubscribe() {
 GRect peek_test_get_unobstructed_bounds() {
   GRect bounds = layer_get_frame((Layer*)s_layer);
   GRect available = s_screen;
-  available.size.h = bounds.origin.y;
+  if(s_type) {
+    available.origin.y = PEEK_HEIGHT+bounds.origin.y;
+    available.size.h -= available.origin.y;
+  } else {
+    available.size.h = bounds.origin.y;
+  }
   return available;
 }
