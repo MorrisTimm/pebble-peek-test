@@ -23,20 +23,32 @@ static void prv_animation_timer_callback(void* data) {
   GRect bounds = layer_get_frame((Layer*)s_layer);
   bool did_change = false;
   if(s_peek) {
+    /*
     if(bounds.origin.y > s_screen.size.h-PEEK_HEIGHT) {
       bounds.origin.y -= SPEED;
       if(bounds.origin.y < s_screen.size.h-PEEK_HEIGHT) {
         bounds.origin.y = s_screen.size.h-PEEK_HEIGHT;
+    */
+    if(bounds.origin.y < 0) {
+      bounds.origin.y += SPEED;
+      if(bounds.origin.y > 0) {
+        bounds.origin.y = 0;
         did_change = true;
       } else {
         s_animation_timer = app_timer_register(33, prv_animation_timer_callback, data);
       }
     }
   } else {
+    /*
     if(bounds.origin.y < s_screen.size.h) {
       bounds.origin.y += SPEED;
       if(bounds.origin.y > s_screen.size.h) {
         bounds.origin.y = s_screen.size.h;
+    */
+    if(bounds.origin.y > -PEEK_HEIGHT) {
+      bounds.origin.y -= SPEED;
+      if(bounds.origin.y < -PEEK_HEIGHT) {
+        bounds.origin.y = -PEEK_HEIGHT;
         did_change = true;
       } else {
         s_animation_timer = app_timer_register(33, prv_animation_timer_callback, data);
@@ -66,6 +78,7 @@ static void prv_peek_timer_callback(void* data) {
   if(s_handlers.will_change) {
     GRect target = s_screen;
     if(s_peek) {
+      target.origin.y = PEEK_HEIGHT; // from top
       target.size.h = s_screen.size.h-PEEK_HEIGHT;
     }
     s_handlers.will_change(target, s_context);
@@ -84,8 +97,9 @@ static void prv_layer_update_proc(Layer* layer, GContext* ctx) {
 Layer* peek_test_init(GRect screen_bounds, int peek_interval) {
   s_screen = screen_bounds;
   s_interval = peek_interval;
-  
-  s_layer = layer_create(GRect(0, s_screen.size.h, s_screen.size.w, PEEK_HEIGHT));
+
+  //s_layer = layer_create(GRect(0, s_screen.size.h, s_screen.size.w, PEEK_HEIGHT));
+  s_layer = layer_create(GRect(0, -PEEK_HEIGHT, s_screen.size.w, PEEK_HEIGHT)); // from top
   layer_set_update_proc(s_layer, prv_layer_update_proc);
 
   s_peek = false;
