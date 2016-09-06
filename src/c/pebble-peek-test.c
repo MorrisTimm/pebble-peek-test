@@ -110,11 +110,15 @@ static void prv_peek_timer_callback(void* data) {
 
 static void prv_layer_update_proc(Layer* layer, GContext* ctx) {
   graphics_context_set_fill_color(ctx, GColorWhite);
-  graphics_fill_rect(ctx, GRect(0, PEEK_BORDER, s_screen.size.w-PEEK_SIDE_WIDTH, PEEK_HEIGHT), 0, GCornerNone);
+  graphics_fill_rect(ctx, GRect(0, 0, s_screen.size.w-PEEK_SIDE_WIDTH, PEEK_HEIGHT), 0, GCornerNone);
   graphics_context_set_fill_color(ctx, PBL_IF_COLOR_ELSE(GColorPictonBlue, GColorLightGray));
-  graphics_fill_rect(ctx, GRect(s_screen.size.w-PEEK_SIDE_WIDTH, PEEK_BORDER, PEEK_SIDE_WIDTH, PEEK_HEIGHT), 0, GCornerNone);
+  graphics_fill_rect(ctx, GRect(s_screen.size.w-PEEK_SIDE_WIDTH, 0, PEEK_SIDE_WIDTH, PEEK_HEIGHT), 0, GCornerNone);
   graphics_context_set_fill_color(ctx, GColorBlack);
-  graphics_fill_rect(ctx, GRect(0, 0, s_screen.size.w, PEEK_BORDER), 0, GCornerNone);
+  if(s_type) {
+    graphics_fill_rect(ctx, GRect(0, PEEK_HEIGHT-PEEK_BORDER, s_screen.size.w, PEEK_BORDER), 0, GCornerNone);
+  } else {
+    graphics_fill_rect(ctx, GRect(0, 0, s_screen.size.w, PEEK_BORDER), 0, GCornerNone);
+  }
 }
 
 Layer* peek_test_init(GRect screen_bounds, int peek_interval, PeekType peek_type) {
