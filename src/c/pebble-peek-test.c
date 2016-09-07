@@ -23,66 +23,117 @@ static bool s_peek;
 static void prv_animation_timer_callback(void* data) {
   GRect bounds = layer_get_frame((Layer*)s_layer);
   bool did_change = false;
+  bool changing = false;
   if(s_peek) {
-    if(s_type) {
-      if(bounds.origin.y < 0) {
-        bounds.origin.y += SPEED;
-        if(bounds.origin.y > 0) {
-          bounds.origin.y = 0;
-          did_change = true;
-        } else {
-          s_animation_timer = app_timer_register(33, prv_animation_timer_callback, data);
+    switch(s_type) {
+      case PEEK_TYPE_BOTTOM: {
+        if(bounds.origin.y > s_screen.size.h-PEEK_HEIGHT) {
+          bounds.origin.y -= SPEED;
+          if(bounds.origin.y < s_screen.size.h-PEEK_HEIGHT) {
+            bounds.origin.y = s_screen.size.h-PEEK_HEIGHT;
+            did_change = true;
+          } else {
+            changing = true;
+          }
         }
+        break;
       }
-    } else {
-      if(bounds.origin.y > s_screen.size.h-PEEK_HEIGHT) {
-        bounds.origin.y -= SPEED;
-        if(bounds.origin.y < s_screen.size.h-PEEK_HEIGHT) {
-          bounds.origin.y = s_screen.size.h-PEEK_HEIGHT;
-          did_change = true;
-        } else {
-          s_animation_timer = app_timer_register(33, prv_animation_timer_callback, data);
+      case PEEK_TYPE_TOP: {
+        if(bounds.origin.y < 0) {
+          bounds.origin.y += SPEED;
+          if(bounds.origin.y > 0) {
+            bounds.origin.y = 0;
+            did_change = true;
+          } else {
+            changing = true;
+          }
         }
+        break;
+      }
+      case PEEK_TYPE_LEFT: {
+        break;
+      }
+      case PEEK_TYPE_RIGHT: {
+        break;
       }
     }
   } else {
-    if(s_type) {
-      if(bounds.origin.y > -PEEK_HEIGHT) {
-        bounds.origin.y -= SPEED;
-        if(bounds.origin.y < -PEEK_HEIGHT) {
-          bounds.origin.y = -PEEK_HEIGHT;
-          did_change = true;
-        } else {
-          s_animation_timer = app_timer_register(33, prv_animation_timer_callback, data);
+    switch(s_type) {
+      case PEEK_TYPE_BOTTOM: {
+        if(bounds.origin.y < s_screen.size.h) {
+          bounds.origin.y += SPEED;
+          if(bounds.origin.y > s_screen.size.h) {
+            bounds.origin.y = s_screen.size.h;
+            did_change = true;
+          } else {
+            changing = true;
+          }
         }
+        break;
       }
-    } else {
-      if(bounds.origin.y < s_screen.size.h) {
-        bounds.origin.y += SPEED;
-        if(bounds.origin.y > s_screen.size.h) {
-          bounds.origin.y = s_screen.size.h;
-          did_change = true;
-        } else {
-          s_animation_timer = app_timer_register(33, prv_animation_timer_callback, data);
+      case PEEK_TYPE_TOP: {
+        if(bounds.origin.y > -PEEK_HEIGHT) {
+          bounds.origin.y -= SPEED;
+          if(bounds.origin.y < -PEEK_HEIGHT) {
+            bounds.origin.y = -PEEK_HEIGHT;
+            did_change = true;
+          } else {
+            changing = true;
+          }
         }
+        break;
+      }
+      case PEEK_TYPE_LEFT: {
+        break;
+      }
+      case PEEK_TYPE_RIGHT: {
+        break;
       }
     }
+  }
+  if(changing) {
+    s_animation_timer = app_timer_register(33, prv_animation_timer_callback, data);
   }
   layer_set_frame((Layer*)s_layer, bounds);
   layer_mark_dirty((Layer*)s_layer);
   if(s_handlers.change) {
-    AnimationProgress progress;
+    AnimationProgress progress = 0;
     if(s_peek) {
-      if(s_type) {
-        progress = ANIMATION_NORMALIZED_MAX-((-bounds.origin.y*ANIMATION_NORMALIZED_MAX)/PEEK_HEIGHT);
-      } else {
-        progress = (-(bounds.origin.y-s_screen.size.h)*ANIMATION_NORMALIZED_MAX)/PEEK_HEIGHT;
+      switch(s_type) {
+        case PEEK_TYPE_BOTTOM: {
+          progress = (-(bounds.origin.y-s_screen.size.h)*ANIMATION_NORMALIZED_MAX)/PEEK_HEIGHT;
+          break;
+        }
+        case PEEK_TYPE_TOP: {
+          progress = ANIMATION_NORMALIZED_MAX-((-bounds.origin.y*ANIMATION_NORMALIZED_MAX)/PEEK_HEIGHT);
+          break;
+        }
+        case PEEK_TYPE_LEFT: {
+          progress = 0;
+          break;
+        }
+        case PEEK_TYPE_RIGHT: {
+          progress = 0;
+          break;
+        }
       }
     } else {
-      if(s_type) {
-        progress = (-bounds.origin.y*ANIMATION_NORMALIZED_MAX)/PEEK_HEIGHT;
-      } else {
-        progress = ANIMATION_NORMALIZED_MAX-((-(bounds.origin.y-s_screen.size.h)*ANIMATION_NORMALIZED_MAX)/PEEK_HEIGHT);
+      switch(s_type) {
+        case PEEK_TYPE_BOTTOM: {
+          progress = ANIMATION_NORMALIZED_MAX-((-(bounds.origin.y-s_screen.size.h)*ANIMATION_NORMALIZED_MAX)/PEEK_HEIGHT);
+          break;
+        } case PEEK_TYPE_TOP: {
+          progress = (-bounds.origin.y*ANIMATION_NORMALIZED_MAX)/PEEK_HEIGHT;
+          break;
+        }
+        case PEEK_TYPE_LEFT: {
+          progress = 0;
+          break;
+        }
+        case PEEK_TYPE_RIGHT: {
+          progress = 0;
+          break;
+        }
       }
     }
     s_handlers.change(progress, s_context);
@@ -99,25 +150,57 @@ static void prv_peek_timer_callback(void* data) {
   if(s_handlers.will_change) {
     GRect target = s_screen;
     if(s_peek) {
-      if(s_type) {
-        target.origin.y = PEEK_HEIGHT;
+      switch(s_type) {
+        case PEEK_TYPE_BOTTOM: {
+          target.size.h = s_screen.size.h-PEEK_HEIGHT;
+          // no break
+        }
+        case PEEK_TYPE_TOP: {
+          target.origin.y = PEEK_HEIGHT;
+          break;
+        }
+        case PEEK_TYPE_RIGHT: {
+          target.size.w = s_screen.size.w-PEEK_HEIGHT;
+          // no break
+        }
+        case PEEK_TYPE_LEFT: {
+          target.origin.x = PEEK_HEIGHT;
+          break;
+        }
       }
-      target.size.h = s_screen.size.h-PEEK_HEIGHT;
     }
     s_handlers.will_change(target, s_context);
   }
 }
 
 static void prv_layer_update_proc(Layer* layer, GContext* ctx) {
-  graphics_context_set_fill_color(ctx, GColorWhite);
-  graphics_fill_rect(ctx, GRect(0, 0, s_screen.size.w-PEEK_SIDE_WIDTH, PEEK_HEIGHT), 0, GCornerNone);
-  graphics_context_set_fill_color(ctx, PBL_IF_COLOR_ELSE(GColorPictonBlue, GColorLightGray));
-  graphics_fill_rect(ctx, GRect(s_screen.size.w-PEEK_SIDE_WIDTH, 0, PEEK_SIDE_WIDTH, PEEK_HEIGHT), 0, GCornerNone);
-  graphics_context_set_fill_color(ctx, GColorBlack);
-  if(s_type) {
-    graphics_fill_rect(ctx, GRect(0, PEEK_HEIGHT-PEEK_BORDER, s_screen.size.w, PEEK_BORDER), 0, GCornerNone);
-  } else {
-    graphics_fill_rect(ctx, GRect(0, 0, s_screen.size.w, PEEK_BORDER), 0, GCornerNone);
+  GRect bounds = layer_get_bounds(layer);
+  switch(s_type) {
+    case PEEK_TYPE_BOTTOM:
+    case PEEK_TYPE_TOP: {
+      graphics_context_set_fill_color(ctx, GColorWhite);
+      graphics_fill_rect(ctx, GRect(0, 0, bounds.size.w-PEEK_SIDE_WIDTH, bounds.size.h), 0, GCornerNone);
+      graphics_context_set_fill_color(ctx, PBL_IF_COLOR_ELSE(GColorPictonBlue, GColorLightGray));
+      graphics_fill_rect(ctx, GRect(bounds.size.w-PEEK_SIDE_WIDTH, 0, PEEK_SIDE_WIDTH, bounds.size.h), 0, GCornerNone);
+      graphics_context_set_fill_color(ctx, GColorBlack);
+      if(PEEK_TYPE_BOTTOM == s_type) {
+        graphics_fill_rect(ctx, GRect(0, 0, bounds.size.w, PEEK_BORDER), 0, GCornerNone);
+      } else {
+        graphics_fill_rect(ctx, GRect(0, bounds.size.h-PEEK_BORDER, bounds.size.w, PEEK_BORDER), 0, GCornerNone);
+      }
+      break;
+    }
+    case PEEK_TYPE_LEFT:
+    case PEEK_TYPE_RIGHT: {
+      graphics_context_set_fill_color(ctx, GColorWhite);
+      graphics_fill_rect(ctx, bounds, 0, GCornerNone);
+      graphics_context_set_fill_color(ctx, GColorBlack);
+      if(PEEK_TYPE_LEFT == s_type) {
+        graphics_fill_rect(ctx, GRect(bounds.size.w-PEEK_BORDER, 0, PEEK_BORDER, bounds.size.h), 0, GCornerNone);
+      } else {
+        graphics_fill_rect(ctx, GRect(0, 0, PEEK_BORDER, bounds.size.h), 0, GCornerNone);
+      }
+    }
   }
 }
 
@@ -126,10 +209,23 @@ Layer* peek_test_init(GRect screen_bounds, int peek_interval, PeekType peek_type
   s_interval = peek_interval;
   s_type = peek_type;
 
-  if(s_type) {
-    s_layer = layer_create(GRect(0, -PEEK_HEIGHT, s_screen.size.w, PEEK_HEIGHT));
-  } else {
-    s_layer = layer_create(GRect(0, s_screen.size.h, s_screen.size.w, PEEK_HEIGHT));
+  switch(s_type) {
+    case PEEK_TYPE_BOTTOM: {
+      s_layer = layer_create(GRect(0, s_screen.size.h, s_screen.size.w, PEEK_HEIGHT));
+      break;
+    }
+    case PEEK_TYPE_TOP: {
+      s_layer = layer_create(GRect(0, -PEEK_HEIGHT, s_screen.size.w, PEEK_HEIGHT));
+      break;
+    }
+    case PEEK_TYPE_LEFT: {
+      s_layer = layer_create(GRect(-PEEK_HEIGHT, 0, PEEK_HEIGHT, s_screen.size.h));
+      break;
+    }
+    case PEEK_TYPE_RIGHT: {
+      s_layer = layer_create(GRect(s_screen.size.w, 0, PEEK_HEIGHT, s_screen.size.h));
+      break;
+    }
   }
   layer_set_update_proc(s_layer, prv_layer_update_proc);
 
@@ -152,11 +248,25 @@ void peek_test_unobstructed_area_service_unsubscribe() {
 GRect peek_test_get_unobstructed_bounds() {
   GRect bounds = layer_get_frame((Layer*)s_layer);
   GRect available = s_screen;
-  if(s_type) {
-    available.origin.y = PEEK_HEIGHT+bounds.origin.y;
-    available.size.h -= available.origin.y;
-  } else {
-    available.size.h = bounds.origin.y;
+  switch(s_type) {
+    case PEEK_TYPE_BOTTOM: {
+      available.size.h = bounds.origin.y;
+      break;
+    }
+    case PEEK_TYPE_TOP: {
+      available.origin.y = PEEK_HEIGHT+bounds.origin.y;
+      available.size.h -= available.origin.y;
+      break;
+    }
+    case PEEK_TYPE_LEFT: {
+      available.origin.x = PEEK_HEIGHT+bounds.origin.x;
+      available.size.w -= available.origin.x;
+      break;
+    }
+    case PEEK_TYPE_RIGHT: {
+      available.size.w = bounds.origin.x;
+      break;
+    }
   }
   return available;
 }

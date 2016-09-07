@@ -4,7 +4,9 @@
 
 typedef enum {
   PEEK_TYPE_BOTTOM,
-  PEEK_TYPE_TOP
+  PEEK_TYPE_TOP,
+  PEEK_TYPE_LEFT,
+  PEEK_TYPE_RIGHT
 } PeekType;
 
 Layer* peek_test_init(GRect screen_bounds, int peek_interval, PeekType peek_type);
