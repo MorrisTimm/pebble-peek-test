@@ -1,10 +1,10 @@
 {
   "name": "pebble-peek-test",
   "author": "Morris Timm <pebble@timm.tc>",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "files": ["dist.zip"],
   "keywords": ["pebble-package"],
-  "description": "A way to test Timeline Peek events in CloudPebble.",
+  "description": "A way to test different Unobstructed Area changes.",
   "repository": "MorrisTimm/pebble-peek-test",
     "dependencies": {},
   "pebble": {

@@ -51,9 +51,27 @@ static void prv_animation_timer_callback(void* data) {
         break;
       }
       case PEEK_TYPE_LEFT: {
+        if(bounds.origin.x < 0) {
+          bounds.origin.x += SPEED;
+          if(bounds.origin.x > 0) {
+            bounds.origin.x = 0;
+            did_change = true;
+          } else {
+            changing = true;
+          }
+        }
         break;
       }
       case PEEK_TYPE_RIGHT: {
+        if(bounds.origin.x > s_screen.size.w-PEEK_HEIGHT) {
+          bounds.origin.x -= SPEED;
+          if(bounds.origin.x < s_screen.size.w-PEEK_HEIGHT) {
+            bounds.origin.x = s_screen.size.w-PEEK_HEIGHT;
+            did_change = true;
+          } else {
+            changing = true;
+          }
+        }
         break;
       }
     }
@@ -84,9 +102,27 @@ static void prv_animation_timer_callback(void* data) {
         break;
       }
       case PEEK_TYPE_LEFT: {
+        if(bounds.origin.x -PEEK_HEIGHT) {
+          bounds.origin.x -= SPEED;
+          if(bounds.origin.x < -PEEK_HEIGHT) {
+            bounds.origin.x = -PEEK_HEIGHT;
+            did_change = true;
+          } else {
+            changing = true;
+          }
+        }
         break;
       }
       case PEEK_TYPE_RIGHT: {
+        if(bounds.origin.x < s_screen.size.w) {
+          bounds.origin.x += SPEED;
+          if(bounds.origin.x > s_screen.size.w) {
+            bounds.origin.x = s_screen.size.w;
+            did_change = true;
+          } else {
+            changing = true;
+          }
+        }
         break;
       }
     }
@@ -109,11 +145,11 @@ static void prv_animation_timer_callback(void* data) {
           break;
         }
         case PEEK_TYPE_LEFT: {
-          progress = 0;
+          progress = ANIMATION_NORMALIZED_MAX-((-bounds.origin.x*ANIMATION_NORMALIZED_MAX)/PEEK_HEIGHT);
           break;
         }
         case PEEK_TYPE_RIGHT: {
-          progress = 0;
+          progress = (-(bounds.origin.x-s_screen.size.w)*ANIMATION_NORMALIZED_MAX)/PEEK_HEIGHT;
           break;
         }
       }
@@ -127,11 +163,11 @@ static void prv_animation_timer_callback(void* data) {
           break;
         }
         case PEEK_TYPE_LEFT: {
-          progress = 0;
+          progress = (-bounds.origin.x*ANIMATION_NORMALIZED_MAX)/PEEK_HEIGHT;
           break;
         }
         case PEEK_TYPE_RIGHT: {
-          progress = 0;
+          progress = ANIMATION_NORMALIZED_MAX-((-(bounds.origin.x-s_screen.size.w)*ANIMATION_NORMALIZED_MAX)/PEEK_HEIGHT);
           break;
         }
       }
